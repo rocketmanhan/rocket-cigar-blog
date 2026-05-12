@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理面板 — Rocket 雪茄房</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><span>🚀</span> <span data-i18n="site_name">Rocket 雪茄房</span></div>
+    <nav>
+      <a href="index.html" data-i18n="nav_home">首页</a>
+      <a href="admin.html" class="active" data-i18n="nav_admin">管理</a>
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang="zh">中文</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="es">ES</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- 密码验证界面 -->
+<div class="password-screen" id="passwordScreen">
+  <div class="password-box">
+    <h2 data-i18n="pw_title">🔒 管理员登录</h2>
+    <p data-i18n="pw_hint">请输入管理密码以进入后台</p>
+    <div class="form-group">
+      <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="checkPassword()" data-i18n="pw_btn">进入管理</button>
+    <div class="error" id="passwordError"></div>
+  </div>
+</div>
+
+<!-- 管理面板主界面 -->
+<div id="adminMain" style="display:none">
+  <div class="admin-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <h2 data-i18n="admin_title">📋 文章管理</h2>
+      <div style="display:flex;gap:0.75rem">
+        <button class="btn btn-primary" onclick="openModal()" data-i18n="btn_add">＋ 添加文章</button>
+        <button class="btn btn-secondary btn-sm" onclick="logout()" data-i18n="btn_logout">退出登录</button>
+      </div>
+    </div>
+    <div class="admin-post-list" id="adminList"></div>
+  </div>
+</div>
+
+<!-- 添加/编辑 弹窗 -->
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <h3 id="modalTitle" data-i18n="modal_add">添加新文章</h3>
+    <input type="hidden" id="editId">
+
+    <!-- 内容语言标签（标题/正文/标签 的语言切换） -->
+    <div class="form-content-notice" data-i18n="form_content_notice">📝 以下标题、正文、标签可分三种语言填写</div>
+    <div class="form-lang-tabs" id="formLangTabs">
+      <button class="form-lang-tab active" data-form-lang="zh">🇨🇳 中文</button>
+      <button class="form-lang-tab" data-form-lang="en">🇬🇧 English</button>
+      <button class="form-lang-tab" data-form-lang="es">🇪🇸 Español</button>
+    </div>
+
+    <div class="form-group">
+      <label data-i18n="lbl_art_title">文章标题 *</label>
+      <input type="text" id="fTitle" placeholder="">
+    </div>
+    <div class="form-group">
+      <label data-i18n="lbl_tags">标签（逗号分隔）</label>
+      <input type="text" id="fTags" placeholder="">
+    </div>
+    <div class="form-group">
+      <label data-i18n="lbl_body">文章正文 *</label>
+      <textarea id="fBody" placeholder=""></textarea>
+    </div>
+
+    <hr style="border-color:var(--border);margin:1.25rem 0">
+
+    <!-- 共用字段（品牌、产地等不需要翻译） -->
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="lbl_brand">品牌</label>
+        <input type="text" id="fBrand" data-i18n-placeholder="ph_brand">
+      </div>
+      <div class="form-group">
+        <label data-i18n="lbl_origin">产地</label>
+        <input type="text" id="fOrigin" data-i18n-placeholder="ph_origin">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="lbl_strength">口感强度</label>
+        <select id="fStrength">
+          <option value="清淡" data-i18n="strength_light">清淡</option>
+          <option value="中等" data-i18n="strength_medium" selected>中等</option>
+          <option value="浓郁" data-i18n="strength_full">浓郁</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-i18n="lbl_size">尺寸规格</label>
+        <input type="text" id="fSize" data-i18n-placeholder="ph_size">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="lbl_price">价格区间</label>
+        <input type="text" id="fPrice" data-i18n-placeholder="ph_price">
+      </div>
+      <div class="form-group">
+        <label data-i18n="lbl_cover">封面图片 URL</label>
+        <input type="text" id="fCover" placeholder="https://...">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="savePost()" data-i18n="btn_save">💾 保存</button>
+      <button class="btn btn-secondary" onclick="closeModal()" data-i18n="btn_cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
