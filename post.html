@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rocket 雪茄房</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><span>🚀</span> <span data-i18n="site_name">Rocket 雪茄房</span></div>
+    <nav>
+      <a href="index.html" data-i18n="nav_home">首页</a>
+      <a href="admin.html" data-i18n="nav_admin">管理</a>
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang="zh">中文</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="es">ES</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="post-detail" id="postDetail">
+  <div class="empty-state" style="padding-top:6rem">
+    <div class="icon">⏳</div>
+    <p>加载中...</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/post.js"></script>
+</body>
+</html>
