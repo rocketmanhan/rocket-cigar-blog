@@ -23,7 +23,6 @@
   </div>
 </header>
 
-<!-- 密码验证界面 -->
 <div class="password-screen" id="passwordScreen">
   <div class="password-box">
     <h2 data-i18n="pw_title">🔒 管理员登录</h2>
@@ -36,13 +35,12 @@
   </div>
 </div>
 
-<!-- 管理面板主界面 -->
 <div id="adminMain" style="display:none">
   <div class="admin-wrap">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
       <h2 data-i18n="admin_title">📋 文章管理</h2>
       <div style="display:flex;gap:0.75rem">
-        <button class="btn btn-primary" onclick="openModal()" data-i18n="btn_add">＋ 添加文章</button>
+        <button class="btn btn-primary" onclick="openModal()" data-i18n="btn_add">＋ 添加雪茄</button>
         <button class="btn btn-secondary btn-sm" onclick="logout()" data-i18n="btn_logout">退出登录</button>
       </div>
     </div>
@@ -50,14 +48,14 @@
   </div>
 </div>
 
-<!-- 添加/编辑 弹窗 -->
+<!-- 弹窗 -->
 <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModalOnBg(event)">
   <div class="modal">
-    <h3 id="modalTitle" data-i18n="modal_add">添加新文章</h3>
+    <h3 id="modalTitle">添加新雪茄</h3>
     <input type="hidden" id="editId">
 
-    <!-- 内容语言标签（标题/正文/标签 的语言切换） -->
-    <div class="form-content-notice" data-i18n="form_content_notice">📝 以下标题、正文、标签可分三种语言填写</div>
+    <!-- 多语言内容标签 -->
+    <div class="form-content-notice" data-i18n="form_content_notice">📝 以下字段可分三种语言填写</div>
     <div class="form-lang-tabs" id="formLangTabs">
       <button class="form-lang-tab active" data-form-lang="zh">🇨🇳 中文</button>
       <button class="form-lang-tab" data-form-lang="en">🇬🇧 English</button>
@@ -65,21 +63,41 @@
     </div>
 
     <div class="form-group">
-      <label data-i18n="lbl_art_title">文章标题 *</label>
-      <input type="text" id="fTitle" placeholder="">
+      <label data-i18n="lbl_art_title">标题 *</label>
+      <input type="text" id="fTitle">
     </div>
     <div class="form-group">
       <label data-i18n="lbl_tags">标签（逗号分隔）</label>
-      <input type="text" id="fTags" placeholder="">
+      <input type="text" id="fTags">
     </div>
     <div class="form-group">
-      <label data-i18n="lbl_body">文章正文 *</label>
-      <textarea id="fBody" placeholder=""></textarea>
+      <label data-i18n="lbl_body">雪茄简介 *</label>
+      <textarea id="fBody" style="min-height:100px"></textarea>
+    </div>
+    <div class="form-group">
+      <label data-i18n="lbl_notes">品鉴笔记</label>
+      <textarea id="fNotes" style="min-height:130px"></textarea>
     </div>
 
     <hr style="border-color:var(--border);margin:1.25rem 0">
 
-    <!-- 共用字段（品牌、产地等不需要翻译） -->
+    <!-- 封面图片上传 -->
+    <div class="form-group">
+      <label data-i18n="lbl_cover">封面图片</label>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <img id="coverPreview" style="display:none;width:100%;max-height:200px;object-fit:cover;border-radius:4px">
+        <div id="uploadPlaceholder">
+          <div style="font-size:2rem">📷</div>
+          <div data-i18n="upload_btn" style="color:var(--gold);margin-top:0.5rem">上传照片</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem">点击选择图片</div>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-muted)" data-i18n="upload_or">或粘贴图片链接</div>
+      <input type="text" id="fCover" placeholder="https://..." style="margin-top:0.4rem">
+    </div>
+
+    <!-- 共用字段 -->
     <div class="form-row">
       <div class="form-group">
         <label data-i18n="lbl_brand">品牌</label>
@@ -90,8 +108,11 @@
         <input type="text" id="fOrigin" data-i18n-placeholder="ph_origin">
       </div>
     </div>
-
     <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="lbl_vitola">茄型</label>
+        <input type="text" id="fVitola" data-i18n-placeholder="ph_vitola">
+      </div>
       <div class="form-group">
         <label data-i18n="lbl_strength">口感强度</label>
         <select id="fStrength">
@@ -100,20 +121,35 @@
           <option value="浓郁" data-i18n="strength_full">浓郁</option>
         </select>
       </div>
+    </div>
+    <div class="form-row">
       <div class="form-group">
-        <label data-i18n="lbl_size">尺寸规格</label>
+        <label data-i18n="lbl_wrapper">茄衣</label>
+        <input type="text" id="fWrapper" data-i18n-placeholder="ph_wrapper">
+      </div>
+      <div class="form-group">
+        <label data-i18n="lbl_binder">茄套</label>
+        <input type="text" id="fBinder" data-i18n-placeholder="ph_binder">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="lbl_filler">茄芯</label>
+        <input type="text" id="fFiller" data-i18n-placeholder="ph_filler">
+      </div>
+      <div class="form-group">
+        <label data-i18n="lbl_size">尺寸</label>
         <input type="text" id="fSize" data-i18n-placeholder="ph_size">
       </div>
     </div>
-
     <div class="form-row">
       <div class="form-group">
-        <label data-i18n="lbl_price">价格区间</label>
+        <label data-i18n="lbl_price">价格</label>
         <input type="text" id="fPrice" data-i18n-placeholder="ph_price">
       </div>
       <div class="form-group">
-        <label data-i18n="lbl_cover">封面图片 URL</label>
-        <input type="text" id="fCover" placeholder="https://...">
+        <label data-i18n="lbl_my_rating">博主评分 (0–100)</label>
+        <input type="number" id="fMyRating" min="0" max="100" placeholder="0–100">
       </div>
     </div>
 
@@ -125,7 +161,6 @@
 </div>
 
 <div class="toast" id="toast"></div>
-
 <script src="js/data.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/admin.js"></script>
