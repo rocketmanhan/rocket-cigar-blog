@@ -10,30 +10,10 @@ function getPosts() {
   return raw ? JSON.parse(raw) : [];
 }
 
-function savePosts(posts) {
-  localStorage.setItem(DB_KEY, JSON.stringify(posts));
-}
+function savePosts(posts) { localStorage.setItem(DB_KEY, JSON.stringify(posts)); }
 
-function getPost(id) {
-  return getPosts().find(p => p.id === id) || null;
-}
+function getPost(id) { return getPosts().find(p => p.id === id) || null; }
 
-// Migrate old single-language posts to multilingual structure
-function migrateData() {
-  const posts = getPosts();
-  let changed = false;
-  posts.forEach(post => {
-    if (typeof post.title === 'string') {
-      post.title = { zh: post.title, en: '', es: '' };
-      post.body  = { zh: post.body  || '', en: '', es: '' };
-      post.tags  = { zh: post.tags  || [], en: [], es: [] };
-      changed = true;
-    }
-  });
-  if (changed) savePosts(posts);
-}
-
-// Get localized field value with fallback chain
 function localized(field, lang) {
   if (!field) return '';
   if (typeof field === 'string') return field;
@@ -46,24 +26,50 @@ function localizedTags(field, lang) {
   return field[lang] || field.zh || field.en || field.es || [];
 }
 
+function migrateData() {
+  const posts = getPosts();
+  let changed = false;
+  posts.forEach(p => {
+    if (typeof p.title === 'string') {
+      p.title = { zh: p.title, en: '', es: '' };
+      p.body  = { zh: p.body  || '', en: '', es: '' };
+      p.tags  = { zh: p.tags  || [], en: [], es: [] };
+      changed = true;
+    }
+    if (!p.notes)    { p.notes    = { zh: '', en: '', es: '' }; changed = true; }
+    if (!p.vitola)   { p.vitola   = ''; changed = true; }
+    if (!p.wrapper)  { p.wrapper  = ''; changed = true; }
+    if (!p.binder)   { p.binder   = ''; changed = true; }
+    if (!p.filler)   { p.filler   = ''; changed = true; }
+    if (p.myRating === undefined) { p.myRating = 0; changed = true; }
+  });
+  if (changed) savePosts(posts);
+}
+
+function splitTags(str) {
+  return (str || '').split(',').map(s => s.trim()).filter(Boolean);
+}
+
 function createPost(data) {
   const posts = getPosts();
   const post = {
     id: generateId(),
-    title: { zh: data.title_zh || '', en: data.title_en || '', es: data.title_es || '' },
-    body:  { zh: data.body_zh  || '', en: data.body_en  || '', es: data.body_es  || '' },
-    tags:  {
-      zh: (data.tags_zh || '').split(',').map(s => s.trim()).filter(Boolean),
-      en: (data.tags_en || '').split(',').map(s => s.trim()).filter(Boolean),
-      es: (data.tags_es || '').split(',').map(s => s.trim()).filter(Boolean),
-    },
-    brand: data.brand || '',
-    origin: data.origin || '',
+    title:    { zh: data.title_zh || '', en: data.title_en || '', es: data.title_es || '' },
+    body:     { zh: data.body_zh  || '', en: data.body_en  || '', es: data.body_es  || '' },
+    notes:    { zh: data.notes_zh || '', en: data.notes_en || '', es: data.notes_es || '' },
+    tags:     { zh: splitTags(data.tags_zh), en: splitTags(data.tags_en), es: splitTags(data.tags_es) },
+    brand:    data.brand    || '',
+    origin:   data.origin   || '',
     strength: data.strength || '中等',
-    size: data.size || '',
-    price: data.price || '',
+    vitola:   data.vitola   || '',
+    wrapper:  data.wrapper  || '',
+    binder:   data.binder   || '',
+    filler:   data.filler   || '',
+    size:     data.size     || '',
+    price:    data.price    || '',
+    myRating: parseInt(data.myRating) || 0,
     coverUrl: data.coverUrl || '',
-    ratings: [],
+    ratings:  [],
     createdAt: Date.now()
   };
   posts.unshift(post);
@@ -75,31 +81,29 @@ function updatePost(id, data) {
   const posts = getPosts();
   const idx = posts.findIndex(p => p.id === id);
   if (idx === -1) return null;
-  const existing = posts[idx];
-
   posts[idx] = {
-    ...existing,
-    title: { zh: data.title_zh || '', en: data.title_en || '', es: data.title_es || '' },
-    body:  { zh: data.body_zh  || '', en: data.body_en  || '', es: data.body_es  || '' },
-    tags:  {
-      zh: (data.tags_zh || '').split(',').map(s => s.trim()).filter(Boolean),
-      en: (data.tags_en || '').split(',').map(s => s.trim()).filter(Boolean),
-      es: (data.tags_es || '').split(',').map(s => s.trim()).filter(Boolean),
-    },
-    brand: data.brand || '',
-    origin: data.origin || '',
+    ...posts[idx],
+    title:    { zh: data.title_zh || '', en: data.title_en || '', es: data.title_es || '' },
+    body:     { zh: data.body_zh  || '', en: data.body_en  || '', es: data.body_es  || '' },
+    notes:    { zh: data.notes_zh || '', en: data.notes_en || '', es: data.notes_es || '' },
+    tags:     { zh: splitTags(data.tags_zh), en: splitTags(data.tags_en), es: splitTags(data.tags_es) },
+    brand:    data.brand    || '',
+    origin:   data.origin   || '',
     strength: data.strength || '中等',
-    size: data.size || '',
-    price: data.price || '',
-    coverUrl: data.coverUrl || '',
+    vitola:   data.vitola   || '',
+    wrapper:  data.wrapper  || '',
+    binder:   data.binder   || '',
+    filler:   data.filler   || '',
+    size:     data.size     || '',
+    price:    data.price    || '',
+    myRating: parseInt(data.myRating) || 0,
+    coverUrl: data.coverUrl !== undefined ? data.coverUrl : posts[idx].coverUrl,
   };
   savePosts(posts);
   return posts[idx];
 }
 
-function deletePost(id) {
-  savePosts(getPosts().filter(p => p.id !== id));
-}
+function deletePost(id) { savePosts(getPosts().filter(p => p.id !== id)); }
 
 function hasVoted(postId) {
   return !!(JSON.parse(localStorage.getItem(VOTES_KEY) || '{}')[postId]);
@@ -127,75 +131,33 @@ function seedData() {
   migrateData();
   if (getPosts().length > 0) return;
 
-  const samples = [
+  const posts = [
     {
-      title_zh: '帕特加斯 D4 — 古巴经典之作',
-      title_en: 'Partagas D4 — A Cuban Classic',
-      title_es: 'Partagas D4 — Un Clásico Cubano',
-      body_zh: '帕特加斯 D4（Partagas Serie D No.4）是古巴雪茄中的殿堂级作品，自1950年代起便备受烟友追捧。\n\n茄衣为深棕色科罗拉多马杜罗，油润光滑，包裹紧实。点燃后，浓烈的泥土气息扑面而来，伴随着黑胡椒与可可粉的复杂层次。燃烧中段，皮革与咖啡的香气逐渐显现，余味悠长。\n\n这支雪茄适合有经验的烟客，口感浓郁，力道十足，建议在餐后配以一杯陈年朗姆酒享用。',
-      body_en: 'The Partagas Serie D No.4 is an iconic Cuban cigar that has been coveted by aficionados since the 1950s.\n\nThe colorado maduro wrapper is dark brown, oily, and tightly rolled. Upon lighting, a powerful wave of earth and black pepper hits you, evolving into complex layers of cocoa and leather through the mid-section.\n\nThis is a cigar for experienced smokers — bold, full-bodied, and best enjoyed after dinner with a glass of aged rum.',
-      body_es: 'El Partagas Serie D No.4 es un puro cubano icónico, codiciado por los aficionados desde la década de 1950.\n\nLa capa colorado maduro es de color marrón oscuro, aceitosa y bien enrollada. Al encenderlo, una potente oleada de tierra y pimienta negra te envuelve, evolucionando hacia capas complejas de cacao y cuero en el tramo medio.\n\nEste es un puro para fumadores con experiencia — atrevido, con mucho cuerpo, y que se disfruta mejor después de cenar con un vaso de ron añejo.',
-      tags_zh: '泥土,皮革,咖啡,黑胡椒',
-      tags_en: 'earthy,leather,coffee,black pepper',
-      tags_es: 'tierra,cuero,café,pimienta negra',
-      brand: 'Partagas', origin: '古巴', strength: '浓郁',
-      size: 'Robusto (50 × 124mm)', price: '¥180–220',
-      coverUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-      ratings: [5, 4, 5, 5, 4], createdAt: Date.now() - 86400000 * 10
+      id: generateId(),
+      title:   { zh: 'Tatuaje Tuxtla — 墨西哥烈性茄', en: 'Tatuaje Tuxtla — Mexican Power', es: 'Tatuaje Tuxtla — Poder Mexicano' },
+      body:    { zh: 'Tatuaje Tuxtla 是 Pete Johnson 向墨西哥 San Andrés 烟草致敬之作，采用100%墨西哥叶料，产量极为有限。茄衣选用深黑色的墨西哥马杜罗，油润厚实，外观令人印象深刻。', en: 'The Tatuaje Tuxtla is Pete Johnson\'s tribute to Mexican San Andrés tobacco, made with 100% Mexican leaf and produced in extremely limited quantities. The dark Mexican maduro wrapper is oily and thick, making an impressive first impression.', es: 'El Tatuaje Tuxtla es el homenaje de Pete Johnson al tabaco mexicano San Andrés, elaborado con hoja 100% mexicana y producido en cantidades extremadamente limitadas.' },
+      notes:   { zh: '冷吸：浓郁的黑巧克力与皮革气息。\n\n开燃段：强烈的黑胡椒冲击，伴随着黑咖啡与可可的底韵，力道十足。\n\n中段：口感逐渐圆润，皮革与烤坚果的香气浮现，余韵悠长。\n\n尾段：甜度微升，雪松木与黑巧克力收尾，令人回味。', en: 'Cold draw: Rich dark chocolate and leather.\n\nFirst third: Intense black pepper hit with undercurrents of black coffee and cocoa — this is a powerful smoke.\n\nSecond third: The profile rounds out, leather and roasted nuts emerge with a long finish.\n\nFinal third: Sweetness rises slightly, closing with cedar and dark chocolate.', es: 'Tiraje en frío: Chocolate negro intenso y cuero.\n\nPrimer tercio: Golpe de pimienta negra intensa con fondo de café negro y cacao.\n\nSegundo tercio: El perfil se redondea, emergen cuero y nueces tostadas.\n\nTercio final: La dulzura sube ligeramente, cerrando con cedro y chocolate negro.' },
+      tags:    { zh: ['黑巧克力','皮革','黑胡椒','咖啡'], en: ['dark chocolate','leather','black pepper','coffee'], es: ['chocolate negro','cuero','pimienta negra','café'] },
+      brand: 'Tatuaje', origin: '尼加拉瓜', strength: '浓郁',
+      vitola: 'Robusto Gordo', wrapper: '墨西哥 San Andrés Maduro',
+      binder: '尼加拉瓜', filler: '尼加拉瓜混合',
+      size: '5½ × 60', price: '¥120–150', myRating: 93,
+      coverUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+      ratings: [5, 4, 5, 5], createdAt: Date.now() - 86400000 * 3
     },
     {
-      title_zh: 'Cohiba Siglo VI — 品质与优雅的巅峰',
-      title_en: 'Cohiba Siglo VI — The Pinnacle of Quality',
-      title_es: 'Cohiba Siglo VI — La Cima de la Elegancia',
-      body_zh: 'Cohiba Siglo VI 是科伊巴品牌中的旗舰款型，采用最顶级的维亚尔塔阿瓦霍产区茄叶，每一支均经过严格筛选。\n\n外观精致，茄衣颜色均匀，呈深金棕色，手感如绸缎般顺滑。点燃后，花香与奶油香气交织，令人沉醉。随着燃烧推进，坚果与雪松木的气息逐渐加深，层次丰富。\n\n这是一支适合放慢节奏、细细品味的雪茄，建议在安静的午后独自享用。',
-      body_en: 'The Cohiba Siglo VI is the flagship of the Cohiba line, crafted from the finest Vuelta Abajo tobaccos, each leaf meticulously selected.\n\nThe construction is impeccable — the wrapper is a uniform deep golden-brown, smooth as silk to the touch. On lighting, floral and creamy notes intertwine in a mesmerizing opening. As it burns, walnut and cedarwood deepen the profile.\n\nThis is a cigar to be savored slowly, best enjoyed alone on a quiet afternoon.',
-      body_es: 'El Cohiba Siglo VI es la joya de la corona de la línea Cohiba, elaborado con los mejores tabacos de Vuelta Abajo, cada hoja meticulosamente seleccionada.\n\nLa construcción es impecable — la capa es de un marrón dorado uniforme, suave como la seda al tacto. Al encenderlo, notas florales y cremosas se entrelazan en una apertura hipnótica. A medida que avanza la combustión, nuez y cedro profundizan el perfil.\n\nEste es un puro para saborear despacio, mejor disfrutado solo en una tarde tranquila.',
-      tags_zh: '花香,奶油,坚果,雪松',
-      tags_en: 'floral,creamy,walnut,cedar',
-      tags_es: 'floral,cremoso,nuez,cedro',
+      id: generateId(),
+      title:   { zh: 'Cohiba Siglo VI — 古巴皇冠之作', en: 'Cohiba Siglo VI — Crown of Cuba', es: 'Cohiba Siglo VI — La Corona de Cuba' },
+      body:    { zh: 'Cohiba Siglo VI 是科伊巴系列旗舰款，采用维亚尔塔阿瓦霍最顶级烟叶精制而成，每支均经三重发酵处理，是古巴工艺的极致体现。', en: 'The Cohiba Siglo VI is the flagship of the Cohiba line, crafted from the finest Vuelta Abajo tobaccos, triple fermented — the ultimate expression of Cuban craftsmanship.', es: 'El Cohiba Siglo VI es la joya de la corona de la línea Cohiba, elaborado con los mejores tabacos de Vuelta Abajo, de triple fermentación.' },
+      notes:   { zh: '冷吸：花香与奶油，令人期待。\n\n开燃段：丝滑的奶油口感，伴随淡淡的花香与坚果，燃烧极为均匀。\n\n中段：雪松木与黑胡椒微微浮现，层次丰富，余韵悠长。\n\n尾段：温暖的皮革与核桃收尾，始终优雅。', en: 'Cold draw: Floral and creamy — very promising.\n\nFirst third: Silky cream with delicate floral notes and nuts, incredibly even burn.\n\nSecond third: Cedar and gentle pepper emerge, complex and long-finishing.\n\nFinal third: Warm leather and walnut close, elegant throughout.', es: 'Tiraje en frío: Floral y cremoso.\n\nPrimer tercio: Crema sedosa con notas florales delicadas y nueces.\n\nSegundo tercio: Cedro y pimienta suave emergen, complejo.\n\nTercio final: Cuero cálido y nuez, elegante.' },
+      tags:    { zh: ['花香','奶油','雪松','坚果'], en: ['floral','creamy','cedar','nuts'], es: ['floral','cremoso','cedro','nueces'] },
       brand: 'Cohiba', origin: '古巴', strength: '中等',
-      size: 'Gran Corona (52 × 150mm)', price: '¥380–450',
-      coverUrl: 'https://images.unsplash.com/photo-1605022671880-e26c006e3f48?w=600&q=80',
-      ratings: [5, 5, 4, 5], createdAt: Date.now() - 86400000 * 5
-    },
-    {
-      title_zh: 'Arturo Fuente Hemingway — 多米尼加的诗意',
-      title_en: 'Arturo Fuente Hemingway — Dominican Poetry',
-      title_es: 'Arturo Fuente Hemingway — Poesía Dominicana',
-      body_zh: 'Arturo Fuente Hemingway 系列以文学巨匠海明威命名，产自多米尼加共和国，是非古巴雪茄中的顶尖之作。\n\n鱼雷形状的独特外观令其在众多雪茄中脱颖而出。茄衣采用喀麦隆日晒叶，颜色呈淡棕色，质地细腻。初燃时，甜美的干果香气令人愉悦，中段转变为轻微的香料与木质调性。\n\n整体口感平衡，适合各类场合享用，无论新手还是老烟枪都能找到愉悦感。',
-      body_en: 'The Arturo Fuente Hemingway series is named after the literary giant and hails from the Dominican Republic — among the finest non-Cuban cigars available.\n\nIts distinctive torpedo shape sets it apart. The Cameroon sun-grown wrapper is a light tan, delicate in texture. The opening offers sweet dried fruit, transitioning to gentle spice and woody notes through the mid-section.\n\nWell-balanced and accessible, it is enjoyable on any occasion — whether you are new to cigars or a seasoned enthusiast.',
-      body_es: 'La serie Arturo Fuente Hemingway lleva el nombre del gigante literario y proviene de la República Dominicana — uno de los mejores puros no cubanos disponibles.\n\nSu distintiva forma de torpedo lo diferencia. La capa camerunesa de cultivo solar es de un bronceado claro y de textura delicada. La apertura ofrece fruta seca dulce, que va hacia notas de especias suaves y madera.\n\nEquilibrado y accesible, es disfrutable en cualquier ocasión, ya seas nuevo en los puros o un entusiasta experimentado.',
-      tags_zh: '干果,甜香,木质,香料',
-      tags_en: 'dried fruit,sweet,woody,spice',
-      tags_es: 'fruta seca,dulce,madera,especias',
-      brand: 'Arturo Fuente', origin: '多米尼加', strength: '清淡',
-      size: 'Torpedo (52 × 178mm)', price: '¥120–160',
-      coverUrl: 'https://images.unsplash.com/photo-1574245047851-1a18a4a7b0e1?w=600&q=80',
-      ratings: [4, 4, 5, 3, 4], createdAt: Date.now() - 86400000 * 2
+      vitola: 'Gran Corona', wrapper: '古巴 Colorado Claro',
+      binder: '古巴', filler: '古巴维亚尔塔阿瓦霍',
+      size: '52 × 150mm', price: '¥380–450', myRating: 97,
+      coverUrl: 'https://images.unsplash.com/photo-1605022671880-e26c006e3f48?w=800&q=80',
+      ratings: [5, 5, 4, 5], createdAt: Date.now() - 86400000 * 7
     }
   ];
-
-  const posts = [];
-  samples.forEach(s => {
-    const id = generateId();
-    posts.push({
-      id,
-      title:    { zh: s.title_zh, en: s.title_en, es: s.title_es },
-      body:     { zh: s.body_zh,  en: s.body_en,  es: s.body_es  },
-      tags:     {
-        zh: s.tags_zh.split(','),
-        en: s.tags_en.split(','),
-        es: s.tags_es.split(','),
-      },
-      brand:    s.brand,
-      origin:   s.origin,
-      strength: s.strength,
-      size:     s.size,
-      price:    s.price,
-      coverUrl: s.coverUrl,
-      ratings:  s.ratings,
-      createdAt: s.createdAt
-    });
-  });
   savePosts(posts);
 }
