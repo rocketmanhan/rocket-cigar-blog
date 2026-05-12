@@ -127,42 +127,9 @@ function avgRating(ratings) {
   return ratings.reduce((a, b) => a + b, 0) / ratings.length;
 }
 
-const PINNED = [
-  {
-    pid: 'tatuaje-tuxtla-2026',
-    title:   { zh: 'Tatuaje ES 2026 Tuxtla Robusto Gordo (5 5/8 × 54)', en: 'Tatuaje ES 2026 Tuxtla Robusto Gordo (5 5/8 × 54)', es: 'Tatuaje ES 2026 Tuxtla Robusto Gordo (5 5/8 × 54)' },
-    body: {
-      zh: 'Tatuaje Exclusive Series Tuxtla 2026 是 Pete Johnson 精心打造的限量杰作，充分展现了墨西哥 San Andrés 茄衣大胆而丰富的个性。这款深色油润的茄衣生长于墨西哥韦拉克鲁斯州著名的 San Andrés Tuxtla 地区，带来可可、大地、胡椒以及微妙天然甜味的精致风味。\n\n由 Pete Johnson 精心调配，并在尼加拉瓜备受推崇的 My Father Cigars 工厂严格制作，这款限量版充分展示了 Tatuaje 品牌背后的精湛工艺。Tuxtla 系列将墨西哥 San Andrés 烟草的力量与精选优质茄芯完美融合，带来浓郁而复杂的品烟体验。',
-      en: 'Introducing the Tatuaje Exclusive Series Tuxtla 2026. This exceptional cigar is a true masterpiece, crafted to showcase the bold, rich character of the Mexican San Andrés wrapper. Grown in the renowned San Andrés Tuxtla region of Veracruz, Mexico, this dark, oily leaf delivers a refined profile of cocoa, earth, pepper, and a subtle natural sweetness.\n\nExpertly blended by Pete Johnson and meticulously produced at the esteemed My Father Cigars factory in Nicaragua, this release exemplifies the artistry behind the Tatuaje brand. The Tuxtla series brings together the strength of Mexican San Andrés tobacco with carefully selected premium fillers, resulting in a robust and complex smoking experience.',
-      es: 'Presentamos el Tatuaje Exclusive Series Tuxtla 2026. Este excepcional puro es una verdadera obra maestra, elaborado para mostrar el carácter audaz y rico de la capa mexicana San Andrés. Cultivada en la famosa región San Andrés Tuxtla de Veracruz, México, esta hoja oscura y aceitosa ofrece un perfil refinado de cacao, tierra, pimienta y una sutil dulzura natural.\n\nMagistralmente mezclado por Pete Johnson y meticulosamente producido en la prestigiosa fábrica My Father Cigars en Nicaragua, este lanzamiento ejemplifica la maestría detrás de la marca Tatuaje. La serie Tuxtla reúne la potencia del tabaco mexicano San Andrés con rellenos premium cuidadosamente seleccionados, resultando en una experiencia de fumado robusta y compleja.'
-    },
-    notes:   { zh: '', en: '', es: '' },
-    tags:    { zh: ['可可','大地','胡椒','甜味'], en: ['cocoa','earthy','pepper','sweet'], es: ['cacao','tierra','pimienta','dulce'] },
-    brand: 'Tatuaje', origin: '尼加拉瓜', strength: '浓郁',
-    vitola: 'Robusto Gordo', wrapper: 'Mexican San Andrés Maduro',
-    binder: 'Nicaragua', filler: 'Nicaragua Blend',
-    size: '5 5/8 × 54', price: '', myRating: 0,
-    coverUrl: 'https://rocketmanhan.github.io/rocket-cigar-blog/images/tuxtla26.jpg',
-    ratings: [], createdAt: Date.now()
-  }
-];
-
-function syncPinned() {
-  const posts = getPosts();
-  let changed = false;
-  PINNED.forEach(pinned => {
-    if (!posts.find(p => p.pid === pinned.pid)) {
-      posts.unshift({ id: generateId(), ...pinned });
-      changed = true;
-    }
-  });
-  if (changed) savePosts(posts);
-}
-
 function seedData() {
   migrateData();
-  syncPinned();
-  if (getPosts().length > 1) return;
+  if (getPosts().length > 0) return;
 
   const posts = [
     {
